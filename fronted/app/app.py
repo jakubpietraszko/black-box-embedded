@@ -27,7 +27,7 @@ from collections import defaultdict
 from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Required for session management
+app.secret_key = 'your_secret_key'
 JSON_SERVER_URL = 'http://localhost:3000'
 
 @app.route('/')
@@ -35,7 +35,6 @@ def home():
     return render_template('home.html')
 
 
-# MQTT settings
 BROKER = "localhost"
 PORT = 1883
 USERNAME = "user"
@@ -43,13 +42,10 @@ PASSWORD = "password"
 client = mqtt.Client()
 client.username_pw_set(USERNAME, PASSWORD)
 
-mac_data = defaultdict(lambda: {"acc": [], "gyro": [], "temp": []}) #mac_passwd
-#mac_data['a0b765201334_1233'] = {"acc": [(1, 2, 3), (1, 2, 3)], "gyro": [(1, 2, 3), (1, 2, 3)], "temp": [1, 2, 3, 2, 1]}
+mac_data = defaultdict(lambda: {"acc": [], "gyro": [], "temp": []})
 
-# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Callback for when the client connects to the broker
 def on_connect(client, userdata, flags, rc):
     logging.info(f"Connected to broker with result code {rc}")
     client.subscribe("bb/#")
@@ -65,7 +61,6 @@ def on_message(client, userdata, msg):
     try:
         parts = msg.topic.split('/')
         print(parts)
-        #bb, mac, passwd, data_type = parts[1], parts[2], parts[3], parts[4]
 
         _, mac, passwd, data_type = parts[0], parts[1], parts[2], parts[3]
 
@@ -113,7 +108,6 @@ def register():
         login = request.form['login']
         password = request.form['password']
 
-        # Create user in the JSON server
         response = requests.post(f'{JSON_SERVER_URL}/users', json={'login': login, 'password': password})
         
         if response.status_code == 201:
@@ -123,19 +117,17 @@ def register():
     
     return render_template('register.html')
 
-# Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         login = request.form['login']
         password = request.form['password']
 
-        # Check if login credentials are correct
         users = requests.get(f'{JSON_SERVER_URL}/users').json()
         user = next((u for u in users if u['login'] == login and u['password'] == password), None)
 
         if user:
-            session['user_id'] = user['id']  # Store user_id in session
+            session['user_id'] = user['id']
             return redirect(url_for('dashboard'))
         else:
             return 'Invalid credentials. Please try again.'
@@ -163,10 +155,8 @@ def get_mac_data(mac_id):
         return jsonify({"error": "MAC ID not found"}), 404
 
     
-    # Return the relevant data for the given mac_id
     data = mac_data[mac_id]
     
-    # Return accelerometer, gyroscope, and temperature data in the format that the frontend expects
     response = {
         "acc": data["acc"],
         "gyro":  data["gyro"],
@@ -184,11 +174,9 @@ def conf(mac_id):
         action = data.get('action', '')
         
         if action:
-            # Publish the corresponding action to MQTT
             topic = f"bb/{mac}/{passwd}/config"
-            client.publish(topic, payload=action, qos=0, retain=False)  # Send '1' as payload for the action
+            client.publish(topic, payload=action, qos=0, retain=False)
             
-            # Log the action and MAC ID
             print(f"#####################################MAC Mac: {mac}, Passwd: {passwd}, Action: {action}, Topic: {topic}")
             return jsonify({"success": True, "action": action}), 200
         else:
@@ -196,17 +184,7 @@ def conf(mac_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Dashboard route (User's MACs)
-# @app.route('/dashboard')
-# def dashboard():
-#     if 'user_id' not in session:
-#         return redirect(url_for('login'))
 
-#     user_id = session['user_id']
-#     macs = requests.get(f'{JSON_SERVER_URL}/macs?userId={user_id}').json()
-#     return render_template('dashboard.html', macs=macs)
-
-# Add MAC route
 @app.route('/add_mac', methods=['POST'])
 def add_mac():
     if 'user_id' not in session:
@@ -215,7 +193,6 @@ def add_mac():
     user_id = session['user_id']
     mac = request.form['mac']
 
-    # Add MAC to the JSON server
     response = requests.post(f'{JSON_SERVER_URL}/macs', json={'userId': user_id, 'mac': mac})
 
     if response.status_code == 201:
@@ -223,10 +200,9 @@ def add_mac():
     else:
         return 'Error: Unable to add MAC.'
 
-# Logout route
 @app.route('/logout')
 def logout():
-    session.pop('user_id', None)  # Clear session
+    session.pop('user_id', None)
     return redirect(url_for('login'))
 
 
@@ -239,7 +215,6 @@ def dashboard():
     blackboxes = requests.get(f'{JSON_SERVER_URL}/blackboxes?userId={user_id}').json()
     return render_template('dashboard.html', blackboxes=blackboxes)
 
-# Add Blackbox route
 @app.route('/add_blackbox', methods=['POST'])
 def add_blackbox():
     if 'user_id' not in session:
@@ -249,7 +224,6 @@ def add_blackbox():
     mac = request.form['mac']
     password = request.form['password']
 
-    # Add Blackbox to the JSON server
     response = requests.post(f'{JSON_SERVER_URL}/blackboxes', json={'userId': user_id, 'mac': mac, 'password': password})
 
     if response.status_code == 201:
@@ -257,7 +231,6 @@ def add_blackbox():
     else:
         return 'Error: Unable to add Blackbox.'
 
-# Update Blackbox password route
 @app.route('/update_blackbox/<int:box_id>', methods=['POST'])
 def update_blackbox(box_id):
     if 'user_id' not in session:
@@ -265,7 +238,6 @@ def update_blackbox(box_id):
 
     new_password = request.form['new_password']
 
-    # Update Blackbox password in the JSON server
     response = requests.patch(f'{JSON_SERVER_URL}/blackboxes/{box_id}', json={'password': new_password})
 
     if response.status_code == 200:
@@ -273,13 +245,11 @@ def update_blackbox(box_id):
     else:
         return 'Error: Unable to update Blackbox.'
 
-# Delete Blackbox route
 @app.route('/delete_blackbox/<int:box_id>', methods=['POST'])
 def delete_blackbox(box_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    # Delete Blackbox from the JSON server
     response = requests.delete(f'{JSON_SERVER_URL}/blackboxes/{box_id}')
 
     if response.status_code == 200:
@@ -290,7 +260,6 @@ def delete_blackbox(box_id):
 
 if __name__ == '__main__':
     threading.Thread(target=background_task, daemon=True).start()
-
 
     client.on_connect = on_connect
     client.on_message = on_message

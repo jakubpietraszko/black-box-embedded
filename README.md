@@ -1,3 +1,53 @@
+# Flash
+```
+$HOME/esp/v5.3.1/esp-idf/install.sh         
+sudo chmod 666 /dev/ttyUSB0
+source $HOME/esp/v5.3.1/esp-idf/export.sh
+idf.py build
+idf.py -p /dev/ttyUSB0 flash monitor
+```
+# Erase flash
+```
+idf.py erase-flash
+```
+
+# MQTT server
+```
+sudo mosquitto -c /etc/mosquitto/mosquitto.conf -v
+```
+
+# Repair mosquitto
+```
+sudo lsof -i :1883
+sudo kill <PID>
+
+```
+
+# Fronted
+```
+cd fronted/app
+source .venv/bin/activate
+python3.12 app.py
+firefox http://127.0.0.1:5000
+```
+
+# Backend
+
+```
+cd fronted/json-server
+node server.js
+```
+
+
+
+
+
+
+
+
+
+
+
 
 # Flash
 ```
