@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Dashboard</h1>
+    <a href="{{ url_for('logout') }}">Logout</a>
+    <h2>Your Blackboxes</h2>
+    <table>
+        <tr>
+            <th>MAC Address</th>
+            <th>Password</th>
+            <th>Actions</th>
+        </tr>
+        {% for box in blackboxes %}
+        <tr>
+            <td>
+                <a href="{{ url_for('mac_details', mac=box['mac'], password=box['password']) }}">
+                    {{ box['mac'] }}
+                </a>
+            </td>
+            <td>{{ box['password'] }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('delete_blackbox', box_id=box['id']) }}" style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+                <form method="POST" action="{{ url_for('update_blackbox', box_id=box['id']) }}" style="display:inline;">
+                    <input type="text" name="new_password" placeholder="New Password" required minlength="4" maxlength="4">
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+    <h2>Add New Blackbox</h2>
+    <form method="POST" action="{{ url_for('add_blackbox') }}">
+        <label for="mac">MAC Address:</label>
+        <input type="text" name="mac" required>
+        <label for="password">Password (4 characters):</label>
+        <input type="text" name="password" minlength="4" maxlength="4" required>
+        <button type="submit">Add</button>
+    </form>
+</body>
+</html>

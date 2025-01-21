@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAC Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+    <h1>MAC Details</h1>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+    <h2>Details</h2>
+    <p><strong>MAC Address:</strong> {{ mac }}</p>
+    <p><strong>Password:</strong> {{ password }}</p>
+    <button id="sleep-bnt">Sleep</button>
+    <button id="cycle-bnt">Cycle</button>
+    <button id="calibrate-bnt">Calibration</button>
+    <button id="reboot-bnt">Reboot</button>
+    <button id="t1-bnt">T1</button>
+    <button id="t5-bnt">T5</button>
+    <button id="a0-bnt">A0</button>
+    <button id="a1-bnt">A1</button>
+
+
+
+    <div id="acc-plot"></div>
+    <div id="gyro-plot"></div>
+    <div id="temp-plot"></div>
+
+    <script>
+
+        const mac_js = "{{ mac }}";  // Pass the MAC ID from Flask template into JavaScript
+        const password_js = "{{ password }}";
+
+
+        function fetchData() {
+            fetch(`/api/mac/${mac_js}_${password_js}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+    
+                    // Parse accelerometer data
+                    let accX = data.acc.map(a => a[0]);
+                    let accY = data.acc.map(a => a[1]);
+                    let accZ = data.acc.map(a => a[2]);
+    
+                    // Create accelerometer plot
+                    let accPlotData = [
+                        { x: [...Array(accX.length).keys()], y: accX, mode: 'lines+markers', name: 'X-acc' },
+                        { x: [...Array(accY.length).keys()], y: accY, mode: 'lines+markers', name: 'Y-acc' },
+                        { x: [...Array(accZ.length).keys()], y: accZ, mode: 'lines+markers', name: 'Z-acc' }
+                    ];
+                    Plotly.newPlot('acc-plot', accPlotData, { title: 'Accelerometer Data' });
+    
+                    // Parse gyroscope data
+                    let gyroX = data.gyro.map(g => g[0]);
+                    let gyroY = data.gyro.map(g => g[1]);
+                    let gyroZ = data.gyro.map(g => g[2]);
+    
+                    // Create gyroscope plot
+                    let gyroPlotData = [
+                        { x: [...Array(gyroX.length).keys()], y: gyroX, mode: 'lines+markers', name: 'X-gyro' },
+                        { x: [...Array(gyroY.length).keys()], y: gyroY, mode: 'lines+markers', name: 'Y-gyro' },
+                        { x: [...Array(gyroZ.length).keys()], y: gyroZ, mode: 'lines+markers', name: 'Z-gyro' }
+                    ];
+                    // Plotly.newPlot('gyro-plot', gyroPlotData, { title: 'Gyroscope Data' });
+    
+                    // Create temperature plot
+                    let tempPlotData = [
+                        { x: [...Array(data.temp.length).keys()], y: data.temp, mode: 'lines+markers', name: 'Temperature' }
+                    ];
+                    Plotly.newPlot('temp-plot', tempPlotData, { title: 'Temperature Data' });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+
+        setInterval(fetchData, 1000);
+
+        function handleButtonClick(action) {
+            fetch(`/api/mac/${mac_js}_${password_js}/config`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action: action })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Button clicked: ${action} for MAC ID ${mac_id}`);
+            })
+            .catch(error => console.error('Error sending action:', error));
+        }
+
+
+        document.getElementById('sleep-bnt').addEventListener('click', () => handleButtonClick('sleep'));
+        document.getElementById('cycle-bnt').addEventListener('click', () => handleButtonClick('cycle'));
+        document.getElementById('calibrate-bnt').addEventListener('click', () => handleButtonClick('calib'));
+        document.getElementById('reboot-bnt').addEventListener('click', () => handleButtonClick('reboot'));
+        document.getElementById('t1-bnt').addEventListener('click', () => handleButtonClick('t1'));
+        document.getElementById('t5-bnt').addEventListener('click', () => handleButtonClick('t5'));
+        document.getElementById('a0-bnt').addEventListener('click', () => handleButtonClick('a0'));
+        document.getElementById('a1-bnt').addEventListener('click', () => handleButtonClick('a1'));
+ 
+ </script>
+
+</body>
+
+</html>
