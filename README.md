@@ -1,5 +1,8 @@
 # Flash
 ```
+# add nimble library
+# delete OTA
+
 $HOME/esp/v5.3.1/esp-idf/install.sh         
 sudo chmod 666 /dev/ttyUSB0
 source $HOME/esp/v5.3.1/esp-idf/export.sh
@@ -37,6 +40,18 @@ firefox http://127.0.0.1:5000
 cd fronted/json-server
 node server.js
 ```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
