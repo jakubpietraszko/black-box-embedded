@@ -19,6 +19,7 @@ sudo mosquitto -c /etc/mosquitto/mosquitto.conf -v
 # Fronted
 ```
 cd fronted/app
+python3.12 -m venv .venv
 source .venv/bin/activate
 python3.12 app.py
 firefox http://127.0.0.1:5000
