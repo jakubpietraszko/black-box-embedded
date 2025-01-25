@@ -9,6 +9,21 @@
       "id": 2,
       "login": "user",
       "password": "user"
+    },
+    {
+      "login": "user123",
+      "password": "user123",
+      "id": 3
+    },
+    {
+      "login": "111",
+      "password": "111",
+      "id": 4
+    },
+    {
+      "login": "333",
+      "password": "333",
+      "id": 5
     }
   ],
   "blackboxes": [
@@ -33,7 +48,7 @@
     {
       "userId": 2,
       "mac": "a0b765201334",
-      "password": "1234",
+      "password": "0000",
       "id": 4
     },
     {
@@ -41,6 +56,24 @@
       "mac": "1c6920eacf70",
       "password": "0000",
       "id": 5
+    },
+    {
+      "userId": 4,
+      "mac": "a0b765201334",
+      "password": "1111",
+      "id": 6
+    },
+    {
+      "userId": 4,
+      "mac": "a0b765201331",
+      "password": "1111",
+      "id": 7
+    },
+    {
+      "userId": 5,
+      "mac": "a0b765201334",
+      "password": "0000",
+      "id": 8
     }
   ]
 }
