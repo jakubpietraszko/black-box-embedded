@@ -4,3 +4,4 @@ plotly
 dash
 flask_login
 dash_bootstrap_components
+flask
